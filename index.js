@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 
 // =============================================================
 // TYPES
@@ -136,6 +136,10 @@ const ACADEMIC_CALENDAR: AcademicCalendar = {
   end_date: "2025-07-31",
   description: "Semester Genap Tahun Akademik 1446–1447 H / 2025",
 };
+
+// =============================================================
+// SIDEBAR ITEMS
+// =============================================================
 
 const SIDEBAR_MENUS = [
   { id: "dashboard", label: "Dashboard", icon: "🏠" },
@@ -403,7 +407,6 @@ function AgendaItem({ item }: { item: AgendaEvent }) {
 function QuestionBankCard({ item }: { item: QuestionBank }) {
   return (
     <div
-      className="zoom-card"
       style={{
         background: "#fff",
         border: "1px solid #E9ECEF",
@@ -414,8 +417,14 @@ function QuestionBankCard({ item }: { item: QuestionBank }) {
         gap: 10,
         boxShadow: "0 4px 20px -4px rgba(0,0,0,0.05)",
         cursor: "pointer",
-        transition: "transform 0.15s, border-color 0.15s",
+        transition: "transform 0.15s",
       }}
+      onMouseEnter={(e) =>
+        ((e.currentTarget as HTMLDivElement).style.transform = "translateY(-2px)")
+      }
+      onMouseLeave={(e) =>
+        ((e.currentTarget as HTMLDivElement).style.transform = "translateY(0)")
+      }
     >
       <div
         style={{
@@ -427,7 +436,6 @@ function QuestionBankCard({ item }: { item: QuestionBank }) {
           alignItems: "center",
           justifyContent: "center",
           fontSize: 22,
-          width: "max-content"
         }}
       >
         📄
@@ -468,7 +476,6 @@ function QuickAccessCard({
 }) {
   return (
     <div
-      className="quick-access-card"
       style={{
         background: "#fff",
         border: "1px solid #E9ECEF",
@@ -478,6 +485,16 @@ function QuickAccessCard({
         cursor: "pointer",
         transition: "all 0.15s",
         boxShadow: "0 4px 20px -4px rgba(0,0,0,0.05)",
+      }}
+      onMouseEnter={(e) => {
+        const el = e.currentTarget as HTMLDivElement;
+        el.style.transform = "scale(1.04)";
+        el.style.borderColor = "#52B788";
+      }}
+      onMouseLeave={(e) => {
+        const el = e.currentTarget as HTMLDivElement;
+        el.style.transform = "scale(1)";
+        el.style.borderColor = "#E9ECEF";
       }}
     >
       <div style={{ fontSize: 32, marginBottom: 10 }}>{icon}</div>
@@ -505,8 +522,6 @@ function SectionCard({
         borderRadius: 20,
         padding: "24px",
         boxShadow: "0 4px 20px -4px rgba(0,0,0,0.05)",
-        display: "flex",
-        flexDirection: "column"
       }}
     >
       <div
@@ -514,7 +529,7 @@ function SectionCard({
           display: "flex",
           alignItems: "center",
           justifyContent: "space-between",
-          marginBottom: 12,
+          marginBottom: 4,
         }}
       >
         <h2
@@ -552,12 +567,6 @@ function SectionCard({
 export default function MahadiansDashboard() {
   const [activeMenu, setActiveMenu] = useState("dashboard");
   const [sidebarOpen, setSidebarOpen] = useState(false);
-  const [isMounted, setIsMounted] = useState(false);
-
-  // Mencegah selisih render server-side (Hydration Match)
-  useEffect(() => {
-    setIsMounted(true);
-  }, []);
 
   const progress = getSemesterProgress(ACADEMIC_CALENDAR);
   const userName = "Muhammad Jiung";
@@ -573,6 +582,7 @@ export default function MahadiansDashboard() {
       }}
     >
       {/* ── SIDEBAR ─────────────────────────────────────────── */}
+      {/* Overlay mobile */}
       {sidebarOpen && (
         <div
           onClick={() => setSidebarOpen(false)}
@@ -581,13 +591,13 @@ export default function MahadiansDashboard() {
             inset: 0,
             background: "rgba(0,0,0,0.4)",
             zIndex: 40,
+            display: "block",
           }}
           className="lg-hidden"
         />
       )}
 
       <aside
-        className={`app-sidebar ${isMounted && sidebarOpen ? "sidebar-open" : ""}`}
         style={{
           width: 260,
           background: "#0F2E22",
@@ -601,7 +611,13 @@ export default function MahadiansDashboard() {
           flexDirection: "column",
           padding: "0 0 24px",
           overflowY: "auto",
-          transition: "transform 0.25s ease-in-out",
+          transform:
+            typeof window !== "undefined" && window.innerWidth < 1024
+              ? sidebarOpen
+                ? "translateX(0)"
+                : "translateX(-100%)"
+              : "translateX(0)",
+          transition: "transform 0.25s ease",
         }}
       >
         {/* Logo */}
@@ -656,7 +672,6 @@ export default function MahadiansDashboard() {
                   setActiveMenu(menu.id);
                   setSidebarOpen(false);
                 }}
-                className={`nav-item-btn ${isActive ? "active" : ""}`}
                 style={{
                   width: "100%",
                   display: "flex",
@@ -667,9 +682,30 @@ export default function MahadiansDashboard() {
                   border: "none",
                   cursor: "pointer",
                   marginBottom: 2,
+                  background: isActive
+                    ? "rgba(82,183,136,0.15)"
+                    : "transparent",
+                  color: isActive ? "#52B788" : "rgba(255,255,255,0.65)",
+                  fontWeight: isActive ? 700 : 500,
                   fontSize: 14,
                   textAlign: "left",
                   transition: "all 0.15s",
+                }}
+                onMouseEnter={(e) => {
+                  if (!isActive) {
+                    (e.currentTarget as HTMLButtonElement).style.background =
+                      "rgba(255,255,255,0.07)";
+                    (e.currentTarget as HTMLButtonElement).style.color =
+                      "#fff";
+                  }
+                }}
+                onMouseLeave={(e) => {
+                  if (!isActive) {
+                    (e.currentTarget as HTMLButtonElement).style.background =
+                      "transparent";
+                    (e.currentTarget as HTMLButtonElement).style.color =
+                      "rgba(255,255,255,0.65)";
+                  }
                 }}
               >
                 <span style={{ fontSize: 18, flexShrink: 0 }}>
@@ -714,14 +750,12 @@ export default function MahadiansDashboard() {
 
       {/* ── MAIN AREA ───────────────────────────────────────── */}
       <div
-        className="main-area-wrapper"
         style={{
           marginLeft: 260,
           flex: 1,
           minWidth: 0,
           display: "flex",
           flexDirection: "column",
-          transition: "margin-left 0.25s ease",
         }}
       >
         {/* ── TOPBAR ─────────────────────────────── */}
@@ -767,7 +801,8 @@ export default function MahadiansDashboard() {
               letterSpacing: -0.3,
             }}
           >
-            {SIDEBAR_MENUS.find((m) => m.id === activeMenu)?.label ?? "Dashboard"}
+            {SIDEBAR_MENUS.find((m) => m.id === activeMenu)?.label ??
+              "Dashboard"}
           </div>
 
           <div style={{ display: "flex", alignItems: "center", gap: 16 }}>
@@ -805,7 +840,7 @@ export default function MahadiansDashboard() {
 
             {/* Profile */}
             <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-              <div className="md-profile-text" style={{ textAlign: "right" }}>
+              <div style={{ textAlign: "right" }}>
                 <div style={{ fontSize: 14, fontWeight: 600, color: "#212529" }}>
                   {userName}
                 </div>
@@ -831,7 +866,7 @@ export default function MahadiansDashboard() {
                 letterSpacing: -0.8,
               }}
             >
-              Assalamu'alaikum, {userName.split(" ")[0]} 👋
+              Assalamu'alaikum, {userName.split(" ")[1]} 👋
             </h1>
             <p style={{ fontSize: 15, color: "#6C757D", margin: "6px 0 0" }}>
               Selamat datang di Mahadian's — portal pelajar Ma'had Al-Azhar
@@ -839,7 +874,14 @@ export default function MahadiansDashboard() {
           </div>
 
           {/* Stat Cards */}
-          <div className="responsive-grid-4">
+          <div
+            style={{
+              display: "grid",
+              gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))",
+              gap: 16,
+              marginBottom: 28,
+            }}
+          >
             <StatCard icon="🎓" label="Pelajar Aktif" value="248" />
             <StatCard icon="📝" label="Bank Soal" value="156" />
             <StatCard icon="📅" label="Agenda Hari Ini" value="3" />
@@ -847,43 +889,65 @@ export default function MahadiansDashboard() {
           </div>
 
           {/* Main Grid */}
-          <div className="responsive-grid-2">
+          <div
+            style={{
+              display: "grid",
+              gridTemplateColumns: "1fr 1fr",
+              gap: 20,
+              marginBottom: 20,
+            }}
+          >
             {/* Pengumuman */}
             <SectionCard title="Pengumuman Terbaru" action="Lihat semua">
-              <div style={{ display: "flex", flexDirection: "column" }}>
-                {ANNOUNCEMENTS.map((a) => (
-                  <AnnouncementItem key={a.id} item={a} />
-                ))}
-              </div>
+              {ANNOUNCEMENTS.map((a) => (
+                <AnnouncementItem key={a.id} item={a} />
+              ))}
             </SectionCard>
 
             {/* Agenda */}
             <SectionCard title="Agenda Terdekat" action="Lihat semua">
-              <div style={{ display: "flex", flexDirection: "column" }}>
-                {AGENDA_EVENTS.map((e) => (
-                  <AgendaItem key={e.id} item={e} />
-                ))}
-              </div>
+              {AGENDA_EVENTS.map((e) => (
+                <AgendaItem key={e.id} item={e} />
+              ))}
             </SectionCard>
           </div>
 
           {/* Quick Access */}
-          <div style={{ marginBottom: 20 }}>
-            <SectionCard title="Akses Cepat">
-              <div className="quick-access-grid">
-                <QuickAccessCard icon="📝" label="Bank Soal" />
-                <QuickAccessCard icon="📅" label="Kalender Akademik" />
-                <QuickAccessCard icon="📋" label="Formulir" />
-                <QuickAccessCard icon="🗂️" label="Arsip Dokumen" />
-              </div>
-            </SectionCard>
-          </div>
+          <SectionCard title="Akses Cepat">
+            <div
+              style={{
+                display: "grid",
+                gridTemplateColumns: "repeat(4, 1fr)",
+                gap: 14,
+                marginTop: 16,
+              }}
+            >
+              <QuickAccessCard icon="📝" label="Bank Soal" />
+              <QuickAccessCard icon="📅" label="Kalender Akademik" />
+              <QuickAccessCard icon="📋" label="Formulir" />
+              <QuickAccessCard icon="🗂️" label="Arsip Dokumen" />
+            </div>
+          </SectionCard>
 
           {/* Bank Soal + Kalender grid */}
-          <div className="responsive-grid-2">
+          <div
+            style={{
+              display: "grid",
+              gridTemplateColumns: "1fr 1fr",
+              gap: 20,
+              marginTop: 20,
+            }}
+          >
             {/* Bank Soal Populer */}
             <SectionCard title="Bank Soal Terpopuler" action="Lihat semua">
-              <div className="bank-soal-grid">
+              <div
+                style={{
+                  display: "grid",
+                  gridTemplateColumns: "repeat(3, 1fr)",
+                  gap: 12,
+                  marginTop: 16,
+                }}
+              >
                 {QUESTION_BANKS.map((q) => (
                   <QuestionBankCard key={q.id} item={q} />
                 ))}
@@ -892,7 +956,7 @@ export default function MahadiansDashboard() {
 
             {/* Kalender Akademik */}
             <SectionCard title="Kalender Akademik">
-              <div style={{ marginTop: 8 }}>
+              <div style={{ marginTop: 16 }}>
                 {/* Semester badge */}
                 <div
                   style={{
@@ -968,7 +1032,7 @@ export default function MahadiansDashboard() {
                   {progress}% berjalan
                 </div>
 
-                {/* Info tambahan dengan sintaks objek string yang valid */}
+                {/* Info additional */}
                 <div
                   style={{
                     marginTop: 20,
@@ -995,77 +1059,28 @@ export default function MahadiansDashboard() {
       <style>{`
         @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
 
-        * { box-sizing: border-box; margin: 0; padding: 0; }
+        * { box-sizing: border-box; }
 
-        /* Base utility styles button sidebar */
-        .nav-item-btn {
-          background: transparent;
-          color: rgba(255,255,255,0.65);
-          font-weight: 500;
-        }
-        .nav-item-btn:hover {
-          background: rgba(255,255,255,0.07) !important;
-          color: #fff !important;
-        }
-        .nav-item-btn.active {
-          background: rgba(82,183,136,0.15) !important;
-          color: #52B788 !important;
-          font-weight: 700 !important;
-        }
-
-        /* Micro-interactions */
-        .zoom-card:hover {
-          transform: translateY(-3px) !important;
-          border-color: #52B788 !important;
-        }
-        .quick-access-card:hover {
-          transform: scale(1.04) !important;
-          border-color: #52B788 !important;
-        }
-
-        /* Responsive Layout Utilities */
-        .responsive-grid-4 {
-          display: grid;
-          grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-          gap: 16px;
-          margin-bottom: 28px;
-        }
-
-        .responsive-grid-2 {
-          display: grid;
-          grid-template-columns: repeat(2, 1fr);
-          gap: 20px;
-          margin-bottom: 20px;
-        }
-
-        .quick-access-grid {
-          display: grid;
-          grid-template-columns: repeat(4, 1fr);
-          gap: 14px;
-          margin-top: 8px;
-        }
-
-        .bank-soal-grid {
-          display: grid;
-          grid-template-columns: repeat(3, 1fr);
-          gap: 12px;
-          margin-top: 8px;
-        }
-
-        /* Breakpoints */
         @media (max-width: 1024px) {
           .mobile-hamburger { display: flex !important; }
-          .main-area-wrapper { margin-left: 0 !important; }
-          .app-sidebar { transform: translateX(-100%) !important; }
-          .sidebar-open { transform: translateX(0) !important; }
-          .lg-hidden { display: block !important; }
+          div[style*="margin-left: 260px"] {
+            margin-left: 0 !important;
+          }
+          aside {
+            transform: translateX(-100%) !important;
+          }
         }
-
         @media (max-width: 768px) {
-          .responsive-grid-2 { grid-template-columns: 1fr !important; }
-          .quick-access-grid { grid-template-columns: repeat(2, 1fr) !important; }
-          .bank-soal-grid { grid-template-columns: 1fr !important; }
-          .md-profile-text { display: none !important; }
+          main > div:nth-child(3),
+          main > div:nth-child(5) {
+            grid-template-columns: 1fr !important;
+          }
+          main > div:nth-child(4) div[style*="grid-template-columns: repeat(4"] {
+            grid-template-columns: repeat(2, 1fr) !important;
+          }
+          main > div:nth-child(5) div[style*="grid-template-columns: repeat(3"] {
+            grid-template-columns: 1fr 1fr !important;
+          }
         }
       `}</style>
     </div>
